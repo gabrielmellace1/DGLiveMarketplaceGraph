@@ -1,0 +1,38 @@
+specVersion: 0.0.4
+description: A Graph subgraph for the NFT marketplace
+repository: <URL to the subgraph repository>
+schema:
+  file: schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: DGLiveMarketplaceGraph
+    network: matic
+    source:
+      address: "0x2D6d77D4D7CBF9be50244B52f9bdF87FaD1B3Ad0"
+      abi: DGLiveMarketplace
+      startBlock: 42865284
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - User
+        - NFTAddress
+        - NFT
+        - Transaction
+        - Marketplace
+      abis:
+        - name: DGLiveMarketplace
+          file: DGLiveMarketplaceGraph\abis\DGLiveMarketplace.json
+      eventHandlers:
+        - event: Sell(address,address,uint256[],uint256[])
+          handler: handleSell
+        - event: Buy(address,uint256[],address,address[])
+          handler: handleBuy
+        - event: BuyForGift(address,uint256[],address,address,address[])
+          handler: handleBuyForGift
+        - event: PaperPurchase(uint256,address,address,uint256,address)
+          handler: handlePaperPurchase
+        - event: Cancel(address,address,uint256[])
+          handler: handleCancel
+      file: DGLiveMarketplaceGraph\DGLiveMarketplaceGraph.wasm

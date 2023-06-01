@@ -1,0 +1,46 @@
+type NFTAddress @entity {
+  id: ID!  # This would be the NFTAddress as string
+  nftAddress: Bytes!  # This is the actual NFTAddress as Bytes
+  totalSales: BigInt!  # Total number of NFTs sold
+  totalRevenue: BigInt!   # Total revenue 
+  nfts: [NFT!] @derivedFrom(field: "nftAddress")  # List of NFTs that belong to this address
+  # Additional fields as required
+}
+
+
+type NFT @entity {
+  id: ID!  # This could be a combination of the NFTAddress and the token id
+  nftAddress: NFTAddress!  # The NFTAddress this NFT belongs to
+  tokenId: BigInt!  # The token ID of this NFT
+  currentPrice: BigInt!  # Current price of the NFT
+  forSale: Boolean!  # If the NFT is currently for sale
+  seller: User!  # The current owner/seller of the NFT
+  transactions: [Transaction!] @derivedFrom(field: "nft")   # All transactions involving this NFT
+  # Additional fields as required
+}
+
+
+type Transaction @entity {
+  id: ID!  # Transaction hash + index
+  nftAddress: NFTAddress!  # The NFTAddress associated with this transaction
+  blockNumber: BigInt
+  buyer: User  # The user who bought the NFT, if applicable
+  seller: User  # The user who sold or listed the NFT
+  nft: NFT!  # The NFT involved in the transaction
+  type: String!   # The type of transaction: "Sell", "Buy", or "Cancel"
+  timestamp: BigInt!   # The timestamp when the transaction occurred
+  price: BigInt  # The price at which the NFT was sold or bought, if applicable
+  recipient: User
+  # Other fields can be added here as required
+}
+
+
+type User @entity {
+  id: ID!  # This would be the Ethereum address of the user
+  totalSales: BigInt!  # Total number of NFTs sold
+  totalRevenue: BigInt!   # Total revenue earned from selling NFTs
+  totalSpent: BigInt!    # Total amount spent buying NFTs
+  nftsForSale: [NFT!] @derivedFrom(field: "seller")   # NFTs currently for sale by the user
+  purchases: [Transaction!] @derivedFrom(field: "buyer")  # All purchases made by the user
+  sales: [Transaction!] @derivedFrom(field: "seller")  # All sales made by the user
+}
