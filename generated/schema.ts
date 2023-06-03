@@ -254,6 +254,19 @@ export class Transaction extends Entity {
     this.set("id", Value.fromString(value));
   }
 
+  get hash(): string {
+    let value = this.get("hash");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set hash(value: string) {
+    this.set("hash", Value.fromString(value));
+  }
+
   get nftAddress(): string {
     let value = this.get("nftAddress");
     if (!value || value.kind == ValueKind.NULL) {
@@ -392,6 +405,147 @@ export class Transaction extends Entity {
   }
 }
 
+export class UserTransaction extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save UserTransaction entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type UserTransaction must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+      );
+      store.set("UserTransaction", id.toString(), this);
+    }
+  }
+
+  static loadInBlock(id: string): UserTransaction | null {
+    return changetype<UserTransaction | null>(
+      store.get_in_block("UserTransaction", id)
+    );
+  }
+
+  static load(id: string): UserTransaction | null {
+    return changetype<UserTransaction | null>(store.get("UserTransaction", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get user(): string {
+    let value = this.get("user");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set user(value: string) {
+    this.set("user", Value.fromString(value));
+  }
+
+  get action(): string {
+    let value = this.get("action");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set action(value: string) {
+    this.set("action", Value.fromString(value));
+  }
+
+  get hash(): string {
+    let value = this.get("hash");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set hash(value: string) {
+    this.set("hash", Value.fromString(value));
+  }
+
+  get nftAddress(): string {
+    let value = this.get("nftAddress");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set nftAddress(value: string) {
+    this.set("nftAddress", Value.fromString(value));
+  }
+
+  get nft(): string {
+    let value = this.get("nft");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set nft(value: string) {
+    this.set("nft", Value.fromString(value));
+  }
+
+  get price(): BigInt | null {
+    let value = this.get("price");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set price(value: BigInt | null) {
+    if (!value) {
+      this.unset("price");
+    } else {
+      this.set("price", Value.fromBigInt(<BigInt>value));
+    }
+  }
+
+  get timestamp(): BigInt | null {
+    let value = this.get("timestamp");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set timestamp(value: BigInt | null) {
+    if (!value) {
+      this.unset("timestamp");
+    } else {
+      this.set("timestamp", Value.fromBigInt(<BigInt>value));
+    }
+  }
+}
+
 export class User extends Entity {
   constructor(id: string) {
     super();
@@ -490,6 +644,15 @@ export class User extends Entity {
 
   get sales(): Array<string> | null {
     let value = this.get("sales");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toStringArray();
+    }
+  }
+
+  get transactions(): Array<string> | null {
+    let value = this.get("transactions");
     if (!value || value.kind == ValueKind.NULL) {
       return null;
     } else {
