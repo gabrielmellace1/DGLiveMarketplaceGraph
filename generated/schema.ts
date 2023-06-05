@@ -97,6 +97,109 @@ export class NFTAddress extends Entity {
       return value.toStringArray();
     }
   }
+
+  get salesByDay(): Array<string> | null {
+    let value = this.get("salesByDay");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toStringArray();
+    }
+  }
+}
+
+export class NFTAddressSale extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save NFTAddressSale entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type NFTAddressSale must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+      );
+      store.set("NFTAddressSale", id.toString(), this);
+    }
+  }
+
+  static loadInBlock(id: string): NFTAddressSale | null {
+    return changetype<NFTAddressSale | null>(
+      store.get_in_block("NFTAddressSale", id)
+    );
+  }
+
+  static load(id: string): NFTAddressSale | null {
+    return changetype<NFTAddressSale | null>(store.get("NFTAddressSale", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get nftAddress(): string {
+    let value = this.get("nftAddress");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set nftAddress(value: string) {
+    this.set("nftAddress", Value.fromString(value));
+  }
+
+  get date(): string {
+    let value = this.get("date");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set date(value: string) {
+    this.set("date", Value.fromString(value));
+  }
+
+  get totalSales(): BigInt {
+    let value = this.get("totalSales");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set totalSales(value: BigInt) {
+    this.set("totalSales", Value.fromBigInt(value));
+  }
+
+  get totalRevenue(): BigInt {
+    let value = this.get("totalRevenue");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set totalRevenue(value: BigInt) {
+    this.set("totalRevenue", Value.fromBigInt(value));
+  }
 }
 
 export class NFT extends Entity {
@@ -653,6 +756,204 @@ export class User extends Entity {
 
   get transactions(): Array<string> | null {
     let value = this.get("transactions");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toStringArray();
+    }
+  }
+
+  get salesByDay(): Array<string> | null {
+    let value = this.get("salesByDay");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toStringArray();
+    }
+  }
+}
+
+export class UserSale extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save UserSale entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type UserSale must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+      );
+      store.set("UserSale", id.toString(), this);
+    }
+  }
+
+  static loadInBlock(id: string): UserSale | null {
+    return changetype<UserSale | null>(store.get_in_block("UserSale", id));
+  }
+
+  static load(id: string): UserSale | null {
+    return changetype<UserSale | null>(store.get("UserSale", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get user(): string {
+    let value = this.get("user");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set user(value: string) {
+    this.set("user", Value.fromString(value));
+  }
+
+  get date(): string {
+    let value = this.get("date");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set date(value: string) {
+    this.set("date", Value.fromString(value));
+  }
+
+  get totalSales(): BigInt {
+    let value = this.get("totalSales");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set totalSales(value: BigInt) {
+    this.set("totalSales", Value.fromBigInt(value));
+  }
+
+  get totalRevenue(): BigInt {
+    let value = this.get("totalRevenue");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set totalRevenue(value: BigInt) {
+    this.set("totalRevenue", Value.fromBigInt(value));
+  }
+}
+
+export class DateEntity extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save DateEntity entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type DateEntity must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+      );
+      store.set("DateEntity", id.toString(), this);
+    }
+  }
+
+  static loadInBlock(id: string): DateEntity | null {
+    return changetype<DateEntity | null>(store.get_in_block("DateEntity", id));
+  }
+
+  static load(id: string): DateEntity | null {
+    return changetype<DateEntity | null>(store.get("DateEntity", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get day(): i32 {
+    let value = this.get("day");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
+  }
+
+  set day(value: i32) {
+    this.set("day", Value.fromI32(value));
+  }
+
+  get month(): i32 {
+    let value = this.get("month");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
+  }
+
+  set month(value: i32) {
+    this.set("month", Value.fromI32(value));
+  }
+
+  get year(): i32 {
+    let value = this.get("year");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
+  }
+
+  set year(value: i32) {
+    this.set("year", Value.fromI32(value));
+  }
+
+  get userSales(): Array<string> | null {
+    let value = this.get("userSales");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toStringArray();
+    }
+  }
+
+  get nftAddressSales(): Array<string> | null {
+    let value = this.get("nftAddressSales");
     if (!value || value.kind == ValueKind.NULL) {
       return null;
     } else {

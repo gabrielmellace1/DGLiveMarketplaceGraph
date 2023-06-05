@@ -12,7 +12,49 @@ import {
   NFT,
   Transaction,
   UserTransaction,
+  DateEntity,
+  UserSale,
+  NFTAddressSale,
 } from "../generated/schema";
+
+export function timestampToDate(timestamp: number): string {
+  let unixTimestamp = timestamp;
+  let days = Math.floor(unixTimestamp / 86400);
+
+  let year = 1970;
+  let month = 1;
+
+  while (true) {
+    let leapYear =
+      year % 4 == 0 && (year % 100 != 0 || year % 400 == 0) ? 1 : 0;
+    let daysInYear = 365 + leapYear;
+    if (days < daysInYear) {
+      break;
+    }
+    days -= daysInYear;
+    year++;
+  }
+
+  for (; month <= 12; month++) {
+    let leapYear =
+      year % 4 == 0 && (year % 100 != 0 || year % 400 == 0) ? 1 : 0;
+    let daysInMonth =
+      31 - (((month - 1) % 7) % 2) - (month == 2 ? 2 - leapYear : 0);
+    if (days < daysInMonth) {
+      break;
+    }
+    days -= daysInMonth;
+  }
+
+  // Day, month and year are now correct.
+  let day = days + 1;
+
+  // Formatting the month and day to always have two digits
+  let monthString = month < 10 ? "0" + month.toString() : month.toString();
+  let dayString = day < 10 ? "0" + day.toString() : day.toString();
+
+  return year.toString() + "-" + monthString + "-" + dayString;
+}
 
 function getOrCreateUser(address: Address): User {
   let userId = address.toHex();
@@ -61,6 +103,58 @@ function getOrCreateNFT(nftAddress: Bytes, tokenId: BigInt): NFT {
   }
 
   return nft as NFT;
+}
+
+function getOrCreateDateEntity(date: string): DateEntity {
+  let dateEntity = DateEntity.load(date);
+
+  if (dateEntity == null) {
+    dateEntity = new DateEntity(date);
+    dateEntity.day = BigInt.fromString(date.substring(8, 10)).toI32();
+    dateEntity.month = BigInt.fromString(date.substring(5, 7)).toI32();
+    dateEntity.year = BigInt.fromString(date.substring(0, 4)).toI32();
+
+    dateEntity.save();
+  }
+
+  return dateEntity as DateEntity;
+}
+
+function getOrCreateUserSales(userId: string, date: string): UserSale {
+  let userSalesId = userId + "-" + date;
+  let userSales = UserSale.load(userSalesId);
+
+  if (userSales == null) {
+    userSales = new UserSale(userSalesId);
+    userSales.user = userId;
+    let dateEntity = getOrCreateDateEntity(date);
+    userSales.date = dateEntity.id;
+    userSales.totalSales = BigInt.fromI32(0);
+    userSales.totalRevenue = BigInt.fromI32(0);
+    userSales.save();
+  }
+
+  return userSales as UserSale;
+}
+
+function getOrCreateNftAddressSales(
+  nftAddressId: string,
+  date: string
+): NFTAddressSale {
+  let nftAddressSalesId = nftAddressId + "-" + date;
+  let nftAddressSales = NFTAddressSale.load(nftAddressSalesId);
+
+  if (nftAddressSales == null) {
+    nftAddressSales = new NFTAddressSale(nftAddressSalesId);
+    nftAddressSales.nftAddress = nftAddressId;
+    let dateEntity = getOrCreateDateEntity(date);
+    nftAddressSales.date = dateEntity.id;
+    nftAddressSales.totalSales = BigInt.fromI32(0);
+    nftAddressSales.totalRevenue = BigInt.fromI32(0);
+    nftAddressSales.save();
+  }
+
+  return nftAddressSales as NFTAddressSale;
 }
 
 export function handleSell(event: Sell): void {
@@ -171,6 +265,7 @@ export function handleCancel(event: Cancel): void {
 export function handleBuy(event: Buy): void {
   let buyer = getOrCreateUser(event.params._msgSender);
   let nftAddress = getOrCreateNFTAddress(event.params._nftAddress);
+  let dateString = timestampToDate(event.block.timestamp.toI32());
 
   for (let i = 0; i < event.params._tokenIds.length; i++) {
     let nft = getOrCreateNFT(
@@ -218,6 +313,22 @@ export function handleBuy(event: Buy): void {
     sellerTransaction.timestamp = event.block.timestamp;
     sellerTransaction.save();
 
+    // Get or create UserSales for the seller and update it
+    let sellerSales = getOrCreateUserSales(seller.id, dateString);
+    sellerSales.totalSales = sellerSales.totalSales.plus(BigInt.fromI32(1));
+    sellerSales.totalRevenue = sellerSales.totalRevenue.plus(nft.currentPrice);
+    sellerSales.save();
+
+    // Get or create NFTAddressSales for the NFT address and update it
+    let nftAddressSales = getOrCreateNftAddressSales(nftAddress.id, dateString);
+    nftAddressSales.totalSales = nftAddressSales.totalSales.plus(
+      BigInt.fromI32(1)
+    );
+    nftAddressSales.totalRevenue = nftAddressSales.totalRevenue.plus(
+      nft.currentPrice
+    );
+    nftAddressSales.save();
+
     // Update the buyer and seller's data
     buyer.totalSpent = buyer.totalSpent.plus(nft.currentPrice);
     buyer.save();
@@ -245,6 +356,8 @@ export function handleBuyForGift(event: BuyForGift): void {
   let buyer = getOrCreateUser(event.params._msgSender);
   let recipient = getOrCreateUser(event.params._transferTo); // Get or create the gift recipient
   let nftAddress = getOrCreateNFTAddress(event.params._nftAddress);
+
+  let dateString = timestampToDate(event.block.timestamp.toI32());
 
   for (let i = 0; i < event.params._tokenIds.length; i++) {
     let nft = getOrCreateNFT(
@@ -304,6 +417,22 @@ export function handleBuyForGift(event: BuyForGift): void {
     recipientTransaction.timestamp = event.block.timestamp;
     recipientTransaction.save();
 
+    // Get or create UserSales for the seller and update it
+    let sellerSales = getOrCreateUserSales(seller.id, dateString);
+    sellerSales.totalSales = sellerSales.totalSales.plus(BigInt.fromI32(1));
+    sellerSales.totalRevenue = sellerSales.totalRevenue.plus(nft.currentPrice);
+    sellerSales.save();
+
+    // Get or create NFTAddressSales for the NFT address and update it
+    let nftAddressSales = getOrCreateNftAddressSales(nftAddress.id, dateString);
+    nftAddressSales.totalSales = nftAddressSales.totalSales.plus(
+      BigInt.fromI32(1)
+    );
+    nftAddressSales.totalRevenue = nftAddressSales.totalRevenue.plus(
+      nft.currentPrice
+    );
+    nftAddressSales.save();
+
     // Update the buyer and seller's data
     buyer.totalSpent = buyer.totalSpent.plus(nft.currentPrice);
     buyer.save();
@@ -331,6 +460,7 @@ export function handlePaperPurchase(event: PaperPurchase): void {
   let nftAddress = getOrCreateNFTAddress(event.params._nftAddress);
   let nft = getOrCreateNFT(event.params._nftAddress, event.params._tokenId);
   let seller = getOrCreateUser(event.params.beneficiary);
+  let dateString = timestampToDate(event.block.timestamp.toI32());
 
   // Create a new transaction
   let transactionId = event.transaction.hash.toHex();
@@ -370,6 +500,26 @@ export function handlePaperPurchase(event: PaperPurchase): void {
   sellerTransaction.price = nft.currentPrice;
   sellerTransaction.timestamp = event.block.timestamp;
   sellerTransaction.save();
+
+  // Get or create UserSales for the seller and update it
+  let sellerSales = getOrCreateUserSales(seller.id, dateString);
+  sellerSales.totalSales = sellerSales.totalSales.plus(BigInt.fromI32(1));
+  sellerSales.totalRevenue = sellerSales.totalRevenue.plus(nft.currentPrice);
+  sellerSales.save();
+
+  // Get or create NFTAddressSales for the NFT address and update it
+  let nftAddressSales = getOrCreateNftAddressSales(nftAddress.id, dateString);
+  nftAddressSales.totalSales = nftAddressSales.totalSales.plus(
+    BigInt.fromI32(1)
+  );
+  nftAddressSales.totalRevenue = nftAddressSales.totalRevenue.plus(
+    nft.currentPrice
+  );
+  nftAddressSales.save();
+
+  // Update the buyer and seller's data
+  beneficiary.totalSpent = beneficiary.totalSpent.plus(nft.currentPrice);
+  beneficiary.save();
 
   // Update the seller's data
   seller.totalSales = seller.totalSales.plus(BigInt.fromI32(1));

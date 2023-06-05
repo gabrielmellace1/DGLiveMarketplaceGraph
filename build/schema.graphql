@@ -4,7 +4,15 @@ type NFTAddress @entity {
   totalSales: BigInt! # Total number of NFTs sold
   totalRevenue: BigInt! # Total revenue
   nfts: [NFT!] @derivedFrom(field: "nftAddress") # List of NFTs that belong to this address
-  # Additional fields as required
+  salesByDay: [NFTAddressSale!] @derivedFrom(field: "nftAddress")
+}
+
+type NFTAddressSale @entity {
+  id: ID! # This could be a combination of NFT address id and date id
+  nftAddress: NFTAddress!
+  date: DateEntity! # The date of these sales
+  totalSales: BigInt! # Total sales for this NFT address on this date
+  totalRevenue: BigInt! # Total revenue for this NFT address on this date
 }
 
 type NFT @entity {
@@ -53,4 +61,22 @@ type User @entity {
   purchases: [Transaction!] @derivedFrom(field: "buyer") # All purchases made by the user
   sales: [Transaction!] @derivedFrom(field: "seller") # All sales made by the user
   transactions: [UserTransaction!] @derivedFrom(field: "user")
+  salesByDay: [UserSale!] @derivedFrom(field: "user")
+}
+
+type UserSale @entity {
+  id: ID! # This could be a combination of user id and date id
+  user: User!
+  date: DateEntity! # The date of these sales
+  totalSales: BigInt! # Total sales for this user on this date
+  totalRevenue: BigInt! # Total revenue for this user on this date
+}
+
+type DateEntity @entity {
+  id: ID! # The date in YYYY-MM-DD format
+  day: Int!
+  month: Int!
+  year: Int!
+  userSales: [UserSale!] @derivedFrom(field: "date") # All user sales on this date
+  nftAddressSales: [NFTAddressSale!] @derivedFrom(field: "date") # All NFT address sales on this date
 }
