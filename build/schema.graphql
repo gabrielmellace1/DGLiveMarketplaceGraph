@@ -41,6 +41,11 @@ type Transaction @entity {
   # Other fields can be added here as required
 }
 
+type TransactionCounter @entity {
+  id: ID! # This could be a fixed value since you only need one instance of this entity
+  count: BigInt! # This keeps track of the total number of transactions
+}
+
 type UserTransaction @entity {
   id: ID!
   user: User!

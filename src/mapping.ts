@@ -15,6 +15,7 @@ import {
   DateEntity,
   UserSale,
   NFTAddressSale,
+  TransactionCounter,
 } from "../generated/schema";
 
 export function timestampToDate(timestamp: number): string {
@@ -157,6 +158,23 @@ function getOrCreateNftAddressSales(
   return nftAddressSales as NFTAddressSale;
 }
 
+function incrementTransactionCounter(): void {
+  // Retrieve TransactionCounter, assuming its ID is "global" (since you only need one instance)
+  let transactionCounter = TransactionCounter.load("global");
+
+  // If TransactionCounter doesn't exist yet, create it
+  if (transactionCounter == null) {
+    transactionCounter = new TransactionCounter("global");
+    transactionCounter.count = BigInt.fromI32(0); // Initialize count to 0
+  }
+
+  // Increment the transaction counter
+  transactionCounter.count = transactionCounter.count.plus(BigInt.fromI32(1));
+
+  // Save TransactionCounter
+  transactionCounter.save();
+}
+
 export function handleSell(event: Sell): void {
   let seller = getOrCreateUser(event.params._msgSender);
   let nftAddress = getOrCreateNFTAddress(event.params._nftAddress);
@@ -188,6 +206,8 @@ export function handleSell(event: Sell): void {
     transaction.timestamp = event.block.timestamp;
     transaction.price = event.params._prices[i];
     transaction.save();
+
+    incrementTransactionCounter();
 
     let userTransactionId = seller.id + "-" + transactionId;
     let userTransaction = new UserTransaction(userTransactionId);
@@ -249,6 +269,8 @@ export function handleCancel(event: Cancel): void {
     // Save the transaction
     transaction.save();
 
+    incrementTransactionCounter();
+
     let userTransactionId = user.id + "-" + transactionId;
     let userTransaction = new UserTransaction(userTransactionId);
     userTransaction.user = user.id;
@@ -288,6 +310,8 @@ export function handleBuy(event: Buy): void {
     transaction.timestamp = event.block.timestamp;
     transaction.price = nft.currentPrice;
     transaction.save();
+
+    incrementTransactionCounter();
 
     // Add transaction for the buyer
     let buyerTransactionId = buyer.id + "-" + transactionId;
@@ -380,6 +404,8 @@ export function handleBuyForGift(event: BuyForGift): void {
     transaction.timestamp = event.block.timestamp;
     transaction.price = nft.currentPrice;
     transaction.save();
+
+    incrementTransactionCounter();
 
     // Add transaction for the buyer
     let buyerTransactionId = buyer.id + "-" + transactionId;
@@ -476,6 +502,8 @@ export function handlePaperPurchase(event: PaperPurchase): void {
   transaction.timestamp = event.block.timestamp;
   transaction.price = nft.currentPrice;
   transaction.save();
+
+  incrementTransactionCounter();
 
   // Add transaction for the buyer
   let buyerTransactionId = beneficiary.id + "-" + transactionId;
