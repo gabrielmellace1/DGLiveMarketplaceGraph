@@ -6,6 +6,7 @@ import {
   PaperPurchase,
   Cancel,
 } from "../generated/DGLiveMarketplaceGraph/DGLiveMarketplace";
+import { ERC721 } from "../generated/DGLiveMarketplaceGraph/ERC721";
 import {
   User,
   NFTAddress,
@@ -100,6 +101,10 @@ function getOrCreateNFT(nftAddress: Bytes, tokenId: BigInt): NFT {
     nft.seller = Address.fromString(
       "0x0000000000000000000000000000000000000000"
     ).toHex(); // Set seller to a "zero" address initially
+    let contractAddress = Address.fromString(nftAddress.toHex());
+    let erc721Contract = ERC721.bind(contractAddress);
+    nft.tokenURI = erc721Contract.tokenURI(tokenId).toString();
+
     nft.save();
   }
 

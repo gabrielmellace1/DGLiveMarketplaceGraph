@@ -306,6 +306,23 @@ export class NFT extends Entity {
     this.set("seller", Value.fromString(value));
   }
 
+  get tokenURI(): string | null {
+    let value = this.get("tokenURI");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
+  }
+
+  set tokenURI(value: string | null) {
+    if (!value) {
+      this.unset("tokenURI");
+    } else {
+      this.set("tokenURI", Value.fromString(<string>value));
+    }
+  }
+
   get transactions(): Array<string> | null {
     let value = this.get("transactions");
     if (!value || value.kind == ValueKind.NULL) {

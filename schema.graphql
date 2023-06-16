@@ -22,6 +22,7 @@ type NFT @entity {
   currentPrice: BigInt! # Current price of the NFT
   forSale: Boolean! # If the NFT is currently for sale
   seller: User! # The current owner/seller of the NFT
+  tokenURI: String
   transactions: [Transaction!] @derivedFrom(field: "nft") # All transactions involving this NFT
   # Additional fields as required
 }
